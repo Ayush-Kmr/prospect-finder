@@ -1,0 +1,13 @@
+{
+  "name": "prospect-finder",
+  "version": "2.4.0",
+  "private": true,
+  "type": "module",
+  "description": "Chrome extension + CLI: find work email/phone for a LinkedIn profile using an LLM plus licensed data providers.",
+  "bin": { "find-contact": "cli/find-contact.mjs" },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "zip": "zip -r prospect-finder.zip manifest.json src -x '*.DS_Store'"
+  },
+  "engines": { "node": ">=18" }
+}

@@ -1,0 +1,31 @@
+services:
+  backend:
+    build: ./backend
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: sqlite:////data/contacts.db
+      CORS_ORIGINS: http://localhost:8080
+    volumes:
+      - contacts-data:/data
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    depends_on: [backend]
+    ports:
+      - "8080:80"
+
+  # Optional free, self-hosted metasearch: docker compose --profile search up
+  # then set SEARCH_PROVIDER=searxng and SEARXNG_URL=http://searxng:8080 in backend/.env
+  searxng:
+    # Pin a tag from hub.docker.com/r/searxng/searxng/tags for reproducible builds.
+    image: searxng/searxng:latest
+    profiles: [search]
+    volumes:
+      - ./searxng:/etc/searxng:rw
+    ports:
+      - "8888:8080"
+
+volumes:
+  contacts-data:

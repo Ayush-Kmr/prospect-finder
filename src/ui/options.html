@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prospect Finder Settings</title>
+  <link rel="stylesheet" href="ui.css">
+</head>
+<body class="settings">
+  <header>
+    <div class="logo">PF</div>
+    <div>
+      <h1>Settings</h1>
+      <div class="brand-sub">Prospect Finder</div>
+    </div>
+  </header>
+  <main>
+    <p class="lead">🔒 Keys are stored only in this browser and are sent only to the service they belong to.</p>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h3>Claude</h3>
+          <div class="muted">Required. Reads the profile and searches public sources, one request per lookup.</div>
+        </div>
+        <span id="anthropicState" class="pill"></span>
+      </div>
+      <label for="anthropicKey">Anthropic API key</label>
+      <div class="key-row">
+        <input id="anthropicKey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-ant-…">
+        <button type="button" class="btn-sm reveal" data-for="anthropicKey">Show</button>
+        <button type="button" id="checkKey" class="btn-sm">Check key</button>
+      </div>
+      <div class="help">Get one at <a href="https://console.anthropic.com/settings/keys" target="_blank">console.anthropic.com</a>.</div>
+
+      <label>Model</label>
+      <div class="models" id="models">
+        <label class="model"><input type="radio" name="model" value="claude-opus-5-5"><span><b>Opus 5.5</b><small>Most accurate · default</small></span></label>
+        <label class="model"><input type="radio" name="model" value="claude-sonnet-5-5"><span><b>Sonnet 5.5</b><small>Faster · about half the cost</small></span></label>
+        <label class="model"><input type="radio" name="model" value="claude-haiku-5-5"><span><b>Haiku 5.5</b><small>Fastest · cheapest · less thorough</small></span></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h3>Data providers <span class="tag">optional</span></h3>
+          <div class="muted">Add any of these for verified emails and phone numbers. Each call uses that provider's credits.</div>
+        </div>
+      </div>
+      <label for="hunterKey">Hunter</label>
+      <div class="key-row">
+        <input id="hunterKey" type="password" autocomplete="off" spellcheck="false" placeholder="Hunter API key">
+        <button type="button" class="btn-sm reveal" data-for="hunterKey">Show</button>
+      </div>
+      <div class="help">Best value: checks whether a guessed email really exists. Free plan available.</div>
+      <label for="apolloKey">Apollo</label>
+      <div class="key-row">
+        <input id="apolloKey" type="password" autocomplete="off" spellcheck="false" placeholder="Apollo API key">
+        <button type="button" class="btn-sm reveal" data-for="apolloKey">Show</button>
+      </div>
+      <div class="help">Needs a paid Apollo plan for API access.</div>
+      <label for="pdlKey">People Data Labs</label>
+      <div class="key-row">
+        <input id="pdlKey" type="password" autocomplete="off" spellcheck="false" placeholder="PDL API key">
+        <button type="button" class="btn-sm reveal" data-for="pdlKey">Show</button>
+      </div>
+      <div class="help">Best source of mobile numbers on paid plans.</div>
+    </section>
+
+    <section class="card">
+      <h3>Options</h3>
+      <label class="switch"><input id="verifyGuesses" type="checkbox"><span>Check the top 2 guesses with Hunter <small>Uses Hunter credits</small></span></label>
+      <label class="switch"><input id="revealPersonalEmails" type="checkbox"><span>Ask Apollo for personal emails <small>Extra credits; only where you have a lawful basis</small></span></label>
+      <details class="advanced">
+        <summary>Advanced</summary>
+        <label for="customPricing">Custom pricing (JSON, USD per 1M tokens)</label>
+        <textarea id="customPricing" rows="3" placeholder='{"claude-sonnet-5-5": {"input": 2, "output": 10}}'></textarea>
+      </details>
+    </section>
+
+    <div class="save-bar">
+      <span id="saved" class="muted"></span>
+      <button id="save" class="primary">Save changes</button>
+    </div>
+  </main>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="options.js"></script>
+</body>
+</html>

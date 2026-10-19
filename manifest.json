@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "Prospect Finder (AI)",
+  "version": "2.4.0",
+  "description": "Find the work email for the LinkedIn profile you're viewing: Claude searches public sources and verifies what it finds.",
+  "permissions": ["storage", "sidePanel", "activeTab", "tabs"],
+  "host_permissions": [
+    "https://www.linkedin.com/*",
+    "https://api.anthropic.com/*",
+    "https://api.hunter.io/*",
+    "https://api.apollo.io/*",
+    "https://api.peopledatalabs.com/*",
+    "https://cloudflare-dns.com/*"
+  ],
+  "background": { "service_worker": "src/background.js", "type": "module" },
+  "content_scripts": [
+    {
+      "matches": ["https://www.linkedin.com/*"],
+      "js": ["src/content.js"],
+      "css": ["src/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "side_panel": { "default_path": "src/ui/sidepanel.html" },
+  "options_page": "src/ui/options.html",
+  "action": { "default_title": "Prospect Finder" }
+}

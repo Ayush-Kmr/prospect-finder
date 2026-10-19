@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "Zero-Cost Email Finder",
+  "version": "1.0.1",
+  "description": "Find publicly published professional emails and evidence-ranked predictions. Local algorithms only: no AI, no API keys, no backend, no storage.",
+  "minimum_chrome_version": "116",
+  "action": {
+    "default_popup": "src/popup/index.html",
+    "default_title": "Find professional email"
+  },
+  "background": {
+    "service_worker": "service-worker.js",
+    "type": "module"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "https://cloudflare-dns.com/*",
+    "https://dns.google/*",
+    "https://www.wikidata.org/*",
+    "https://api.duckduckgo.com/*"
+  ],
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://*/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}
