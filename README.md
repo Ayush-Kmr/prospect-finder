@@ -1,73 +1,107 @@
-# Prospect Finder
+<div align="center">
 
-A Chrome extension (Manifest V3) that works like Apollo's: open a LinkedIn profile, click **Find contact**, and get a work email (and a phone number where a data provider has one), with a confidence score, the source, and the cost of the lookup.
+# 🔎 Prospect Finder
 
-The same pipeline runs from the terminal (`cli/find-contact.mjs`) and as a Claude Code skill (`/find-contact`).
+**Open a LinkedIn profile → click _Find contact_ → get a work email and phone number.**
 
-## How a lookup works
+An Apollo-style Chrome extension with confidence scores, sources and the cost of every lookup.
 
+<p>
+  <img alt="Manifest V3" src="https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?logo=googlechrome&logoColor=white">
+  <img alt="Node 18+" src="https://img.shields.io/badge/Node-%E2%89%A518-339933?logo=nodedotjs&logoColor=white">
+  <img alt="Claude" src="https://img.shields.io/badge/Powered%20by-Claude-D97757?logo=anthropic&logoColor=white">
+  <img alt="Version" src="https://img.shields.io/badge/version-2.4.0-blue">
+  <img alt="Tests" src="https://img.shields.io/badge/tests-node%20--test-brightgreen">
+</p>
+
+[Features](#-features) · [How it works](#-how-a-lookup-works) · [Install](#-install) · [CLI](#-cli--claude-code-skill) · [Projects](#-whats-in-this-repo) · [Responsible use](#%EF%B8%8F-responsible-use)
+
+</div>
+
+---
+
+## ✨ Features
+
+| | |
+|---|---|
+| 🧠 **Claude research** | One request parses the profile and searches the public web for the person's published email |
+| ✅ **Verified, not guessed** | An address counts as "published" only if it really appears in the retrieved page text |
+| 🔌 **Data providers** | Optional Apollo, People Data Labs and Hunter lookups, run in parallel |
+| 🧮 **Smart fallback** | Pattern candidates ranked by formats seen in real colleague addresses |
+| 💸 **Cost transparency** | Tokens, searches and $ shown on every result and in the CSV export |
+| 🖥️ **Three ways to run** | Chrome side panel, terminal CLI, or the `/find-contact` Claude Code skill |
+
+---
+
+## ⚙️ How a lookup works
+
+```mermaid
+flowchart TD
+    A[👤 LinkedIn profile on screen<br/><sub>read only when you click</sub>] --> B
+    B[🧠 1. Claude research<br/><sub>name · employer · email domain · web search ≤3 · page fetch ≤2</sub>] --> C
+    C[✅ 2. Verify<br/><sub>address must appear in retrieved text and match the person</sub>] --> D
+    D[🌐 3. Domain<br/><sub>published → Claude → Hunter → provider hints, confirmed by DNS MX</sub>] --> E
+    E[🔌 4. Providers in parallel<br/><sub>Apollo · PDL · Hunter</sub>] --> F
+    F[🧮 5. Fallback<br/><sub>pattern candidates, top 2 verified with Hunter</sub>] --> G
+    G[📋 Side panel<br/><sub>status · confidence · source · copy · history · CSV</sub>]
 ```
-LinkedIn profile on screen (read only when you click)
-        │
-        ▼
-1. Claude research ── 1 request, billed to your Anthropic key, tokens/searches/$ shown per lookup
-   → clean name, current employer, the company's real email domain
-   → web search + page fetch, streamed live to the panel (≤3 searches, ≤2 pages; LinkedIn and data-broker sites blocked)
-     for the person's own published email and other employees' published addresses
-        │
-        ▼
-2. Verify ── an address is "published" only if it appears in the text Claude actually retrieved,
-   and it's credited to the person only if it fits their name or their name is beside it on the page
-   (namesakes and team inboxes like careers@ are labelled, not mistaken for them).
-   Colleagues' verified addresses vote on the company format; agreement raises confidence, a split lowers it.
-   Nothing verified? The panel offers "Search deeper": a broader pass (more sources, new queries)
-   that keeps everything the quick pass found. The default lookup stays on the fast pass.
-        │
-        ▼
-3. Domain ── published address → Claude's domain → Hunter domain-search → provider hints, each confirmed by DNS MX
-        │
-        ▼
-4. Providers (in parallel, each optional)
-   • Apollo  people/match    → verified work email, personal emails*, company phone
-   • PDL     person/enrich   → work email, mobile and phone numbers
-   • Hunter  email-finder    → email with a deliverability score
-        │
-        ▼
-5. Fallback ── if no published/verified work email: pattern candidates (formats seen in real
-   published addresses first, then Hunter's pattern, then Claude's ranking), top 2 verified with Hunter
-        │
-        ▼
-Side panel: emails and phones with status, confidence and source · copy · history · CSV export
-```
+
+<details>
+<summary><b>Step-by-step details</b></summary>
+
+1. **Claude research**: one request, billed to your Anthropic key. It returns a clean name, the current employer and the company's real email domain. Web search and page fetches stream live to the panel. LinkedIn and data-broker sites are blocked.
+2. **Verify**: an address is credited to the person only if it fits their name or their name is beside it on the page. Namesakes and team inboxes like `careers@` are labelled, not mistaken for them. Colleagues' verified addresses vote on the company format: agreement raises confidence, a split lowers it. If nothing is verified, **Search deeper** runs a broader pass and keeps everything the quick pass found.
+3. **Domain**: each candidate domain is confirmed by DNS MX.
+4. **Providers**: each one is optional.
+   - **Apollo** `people/match` → verified work email, personal emails\*, company phone
+   - **PDL** `person/enrich` → work email, mobile and phone numbers
+   - **Hunter** `email-finder` → email with a deliverability score
+5. **Fallback**: if there's no published or verified work email, it builds pattern candidates (formats seen in real published addresses first, then Hunter's pattern, then Claude's ranking) and verifies the top 2 with Hunter.
 
 \* only when you turn on "Ask Apollo for personal emails".
 
-## Install
+</details>
+
+---
+
+## 🚀 Install
 
 1. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, and choose this folder.
 2. Open the extension's **Settings** (right-click the icon → Options) and add:
-   - **an Anthropic API key** (default model `claude-opus-5-5`; `claude-sonnet-5-5` costs about half)
-   - **optional data-provider keys:** Apollo, People Data Labs and/or Hunter (needed for phone numbers and deliverability checks)
-3. Open any `linkedin.com/in/...` profile (Recruiter and Sales Navigator profile pages work too) and click **Find contact**.
+   - 🔑 **An Anthropic API key** (default model `claude-opus-5-5`; `claude-sonnet-5-5` costs about half)
+   - 🔌 **Optional provider keys:** Apollo, People Data Labs and/or Hunter (needed for phone numbers and deliverability checks)
+3. Open any `linkedin.com/in/...` profile (Recruiter and Sales Navigator pages work too) and click **Find contact**.
 
-## What to expect
+---
 
-| Keys configured | Work email | Phone |
+## 📊 What to expect
+
+| Keys configured | 📧 Work email | 📞 Phone |
 |---|---|---|
-| Claude only | The person's address when it's published anywhere public (with a source link); otherwise the company format from real published addresses, or ranked guesses | None |
+| Claude only | The person's address when it's published anywhere public (with a source link); otherwise the company format or ranked guesses | None |
 | Claude + Hunter | Verified email for most people at companies with their own domain | Rarely |
 | Claude + Apollo | Verified email for most B2B profiles | Company switchboard; mobile numbers need Apollo's webhook flow (not built in) |
-| Claude + PDL (paid plan) | Good | Best coverage of mobile numbers |
-| All three | Highest coverage; agreement between sources raises confidence | Best available |
+| Claude + PDL (paid) | Good | Best coverage of mobile numbers |
+| **All three** | **Highest coverage**; agreement between sources raises confidence | **Best available** |
 
-No tool finds 100%. Statuses: **published** (found verbatim on a public page; source linked), **unconfirmed** (Claude reported it but it wasn't in the retrieved text; treat with care), **valid/verified** (provider-checked), **guess** (pattern only).
+**Statuses:**
+🟢 **published**: found verbatim on a public page, source linked ·
+🔵 **valid/verified**: checked by a provider ·
+🟡 **unconfirmed**: Claude reported it but it wasn't in the retrieved text ·
+⚪ **guess**: pattern only
 
-## Cost per lookup
+> No tool finds 100% of contacts.
 
-- **Claude:** one request at low effort with up to 3 web searches ($0.01 each) and 2 page fetches; most of the input tokens are search results and fetched pages. The exact tokens, searches and $ appear on every result and in the CSV export. `claude-sonnet-5-5` roughly halves the token cost.
-- **Providers:** each call uses that provider's credits. A lookup makes at most 1 Apollo call, 1 PDL call, and 2–4 Hunter calls (domain search, finder, and up to 2 verifications). Turn off verification in Settings to save Hunter credits.
+---
 
-## CLI and Claude Code skill
+## 💰 Cost per lookup
+
+- **Claude:** one low-effort request with up to 3 web searches ($0.01 each) and 2 page fetches. Most input tokens are search results and fetched pages. `claude-sonnet-5-5` roughly halves the token cost.
+- **Providers:** at most 1 Apollo call, 1 PDL call and 2–4 Hunter calls per lookup. Turn off verification in Settings to save Hunter credits.
+
+---
+
+## 🖥️ CLI & Claude Code skill
 
 ```bash
 export HUNTER_API_KEY=... APOLLO_API_KEY=... PDL_API_KEY=...
@@ -79,9 +113,26 @@ node cli/find-contact.mjs --name "Jane Doe" --company "Acme Corp" --linkedin htt
 ANTHROPIC_API_KEY=... node cli/find-contact.mjs --profile-file profile.txt --json
 ```
 
-In Claude Code, from this folder, run `/find-contact Jane Doe, recruiter at Acme`. Claude parses the input itself, using the session's tokens, and runs the CLI.
+In Claude Code, from this folder, run:
 
-## Layout
+```
+/find-contact Jane Doe, recruiter at Acme
+```
+
+Claude parses the input itself, using the session's tokens, and runs the CLI.
+
+---
+
+## 📦 What's in this repo
+
+| Project | Description |
+|---|---|
+| **Prospect Finder** (root) | The Claude-powered Chrome extension, CLI and skill described above |
+| [`zero-cost-extension/`](zero-cost-extension/) | 🆓 A Chrome extension with no AI and no API keys. It finds publicly published emails using local TypeScript algorithms only |
+| [`platform/`](platform/) | 🐳 A self-hosted web app (FastAPI + React, Docker Compose) for contact discovery with the evidence behind each result |
+
+<details>
+<summary><b>📁 Project layout (root extension)</b></summary>
 
 ```
 manifest.json
@@ -100,11 +151,25 @@ cli/find-contact.mjs      terminal entry point
 test/                     node --test (mocked HTTP)
 ```
 
-`npm test` runs the test suite. `npm run zip` packages the extension.
+</details>
 
-## Responsible use
+```bash
+npm test       # run the test suite
+npm run zip    # package the extension
+```
 
-- The extension reads only the profile you're looking at, when you click. It does not crawl LinkedIn or send it any requests. Automated scraping breaks LinkedIn's User Agreement and gets accounts restricted.
-- Contact data comes from licensed providers under their terms. Outreach is still subject to GDPR, CAN-SPAM and TCPA (no automated calls or texts to mobile numbers without consent), and similar laws where you operate.
-- API keys stay in `chrome.storage.local` on your machine and go only to the service they belong to.
+---
 
+## ⚖️ Responsible use
+
+- 👁️ The extension reads only the profile you're looking at, and only when you click. It doesn't crawl LinkedIn or send it any requests. Automated scraping breaks LinkedIn's User Agreement and gets accounts restricted.
+- 📜 Contact data comes from licensed providers under their terms. Outreach is still subject to GDPR, CAN-SPAM, TCPA (no automated calls or texts to mobile numbers without consent) and similar laws where you operate.
+- 🔐 API keys stay in `chrome.storage.local` on your machine and are sent only to the service they belong to.
+
+<div align="center">
+
+---
+
+Made with ☕ by [Ayush Kumar](https://github.com/Ayush-Kmr)
+
+</div>
